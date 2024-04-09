@@ -4,6 +4,9 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
 from ipywidgets import widgets, interact
+import folium 
+from collections import defaultdict
+import base64
 
 from typing import List
 
@@ -94,6 +97,106 @@ def visualise_missing_data(df: pd.core.frame.DataFrame) -> None:
     plt.xticks(range(len(locations)), labels=[l.replace(' ', '\n') for l in locations], fontsize=11, rotation=45)
 
     plt.show()
+    
+
+def add_day_month(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
+    if 'month_of_year' in df.columns:
+        return df
+    data = df.copy()
+    data['month_of_year'] = pd.DatetimeIndex(data['Datetime']).month
+    data['hour_of_day'] = pd.DatetimeIndex(data['Datetime']).hour
+    data.loc[data['hour_of_day'] == 0, 'hour_of_day'] = 24
+    data = data[[f for f in data.columns if f != 'Power (W)'] + ['Power (W)']]
+    return data
+
+def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year') -> folium.Map:
+    """
+    Interactive map displaying geolocations of PV arrays. Includes popups of average (hourly or monthly)
+    power output of a given cell.
+    
+    Args:
+        df: The dataset.
+        time_increment (optional): how to average the power output. Can be 'month_of_year' or 'hour_of_day'. 
+    """
+    MONTHS = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 
+              7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
+
+    power = 'Power (W)'
+    if 'month_of_year' not in df.columns:
+        df = add_day_month(df)
+    data = df[['Latitude (deg)', 'Longitude (deg)', power, 'Location', time_increment]].copy()
+    data_grouped = data.groupby(['Location', time_increment]).agg(({power: ['mean', 'std']}))
+    ymin = data_grouped[power]['mean'].min()
+    ymax = data_grouped[power]['mean'].max()
+
+    grouped_means = defaultdict(dict)
+    grouped_stds = defaultdict(dict)
+
+    for index, row in data_grouped.iterrows():
+        grouped_means[index[0]][index[1]] = row[0]
+        grouped_stds[index[0]][index[1]] = row[1]
+
+    for key in grouped_means:
+        if (time_increment == 'month_of_year'):
+            keys = list(grouped_means[key].keys())
+            label = 'Monthly average'
+        else:
+            keys = list(grouped_means[key].keys())
+            label = 'Hourly average'
+
+        values, stds = [], []
+        for subkey in keys:
+            values.append(grouped_means[key][subkey])
+            stds.append(grouped_stds[key][subkey])
+        
+        values = np.array(values)
+        stds = np.array(stds)
+        
+        plt.plot(keys, values, '-o', label=label, color=COLORS[2])
+        plt.fill_between(keys, values - stds, values + stds, alpha=0.2, color=COLORS[3])
+        plt.ylim(ymin, ymax)
+        plt.title(f'Location {key} avg. {power} / {time_increment.split("_")[0]}')
+        plt.ylabel(f'Avg. {power}')
+        plt.xlabel(time_increment[0].upper() + time_increment[1:].replace('_', ' '))
+        plt.legend(loc="upper left")
+        if (time_increment == 'month_of_year'):
+            plt.xticks(keys, labels=[MONTHS[k] for k in keys], fontsize=11)
+        plt.savefig(f'img/tmp/{key}.png', dpi=50)
+
+        plt.clf()
+
+    data_grouped_grid = data.groupby('Location').agg(({power: 'mean', 'Latitude (deg)': 'min', 'Longitude (deg)': 'min'}))
+    
+    data_grouped_grid_array = np.array(
+        [
+            data_grouped_grid['Latitude (deg)'].values,
+            data_grouped_grid['Longitude (deg)'].values,
+            data_grouped_grid[power].values,
+            data_grouped_grid.index.values
+        ]
+    ).T
+
+    m = folium.Map(
+        location=[37.519934, -114.6],
+        tiles='openstreetmap',
+        zoom_start=3.5,
+        width=1200,
+        height=800
+    )
+
+    width, height = 300, 300
+    fg = folium.FeatureGroup(name="My Map")
+    for lat, lng, _, location in data_grouped_grid_array:
+        enc = base64.b64encode(open(f"img/tmp/{location}.png", 'rb').read())
+        html = "<img src='data:image/png;base64,{}'>".format
+        iframe = folium.IFrame(html(enc.decode('UTF-8', errors='ignore')), width=width+10, height=height+10)
+        popup = folium.Popup(iframe, max_width=300, max_height=250)
+        fg.add_child(folium.CircleMarker(location=[lat, lng], radius = 15, popup=popup,
+        fill_color=COLORS[1], color='', fill_opacity=0.5))
+        m.add_child(fg)
+        
+    return m
+
 
 def histogram_plot(df: pd.core.frame.DataFrame, features: List[str], bins: int = 16) -> None:
     """Interactive histogram plots to investigate variation of features by location.
