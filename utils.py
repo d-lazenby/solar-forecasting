@@ -109,6 +109,43 @@ def add_day_month(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
     data = data[[f for f in data.columns if f != 'Power (W)'] + ['Power (W)']]
     return data
 
+import pandas as pd
+import numpy as np
+from datetime import datetime
+import matplotlib.pyplot as plt
+import seaborn as sns
+from ipywidgets import widgets, interact
+import folium 
+from collections import defaultdict
+import base64
+
+from typing import List
+
+FONT_SIZE_TICKS = 15
+FONT_SIZE_TITLE = 20
+FONT_SIZE_AXES = 17
+
+colors = {'white': '#fdfdfd',
+          'dark blue': '#06072c',
+          'chalk blue': '#5f85a6',
+          'light gray': '#cfd1d4',
+          'blue gray': '#a3aab5',
+          'black': '#000000'}
+
+COLORS = [v for v in colors.values()]
+
+sns.set_palette(sns.color_palette(COLORS))    
+
+def add_day_month(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
+    if 'month_of_year' in df.columns:
+        return df
+    data = df.copy()
+    data['month_of_year'] = pd.DatetimeIndex(data['Datetime']).month
+    data['hour_of_day'] = pd.DatetimeIndex(data['Datetime']).hour
+    data.loc[data['hour_of_day'] == 0, 'hour_of_day'] = 24
+    data = data[[f for f in data.columns if f != 'Power (W)'] + ['Power (W)']]
+    return data
+
 def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year') -> folium.Map:
     """
     Interactive map displaying geolocations of PV arrays. Includes popups of average (hourly or monthly)
@@ -177,7 +214,7 @@ def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year
     ).T
 
     m = folium.Map(
-        location=[37.519934, -114.6],
+        location=[29.519934, -105.6],
         tiles='openstreetmap',
         zoom_start=3.5,
         width=1200,
@@ -196,7 +233,6 @@ def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year
         m.add_child(fg)
         
     return m
-
 
 def histogram_plot(df: pd.core.frame.DataFrame, features: List[str], bins: int = 16) -> None:
     """Interactive histogram plots to investigate variation of features by location.
