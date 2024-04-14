@@ -384,18 +384,21 @@ def scatterplot(df: pd.core.frame.DataFrame, features: List[str]) -> None:
     else:
         df_clean = df.copy()
 
-    def _plot(location, var_x, var_y):
+    def _plot(location, var_x, var_y, add_noise):
         plt.figure(figsize=(8, 5))
         df_clean_2 = df_clean[df_clean['Location'] == location]
         x = df_clean_2[var_x].values
         y = df_clean_2[var_y].values
+        if add_noise and var_x == 'WindSpeed (km/h)':
+            x += np.random.uniform(-1, 1, len(x))
+            x = [v if v >= 0 else 0 for v in x ]
 
         plt.plot(
             x, y,
             marker='o', markersize=7, markerfacecolor=COLORS[2], 
             markeredgewidth=0,
             linestyle='', 
-            alpha=0.4
+            alpha=0.2
         )
         
         
@@ -416,11 +419,16 @@ def scatterplot(df: pd.core.frame.DataFrame, features: List[str]) -> None:
         options=features, description="Y-Axis", value="Power (W)"
     )
 
+    add_noise_button = widgets.Checkbox(
+        value=False, description="Blur wind", disabled=False
+    )
+
     interact(
         _plot,
         location=location_selection,
         var_x=x_var_selection,
         var_y=y_var_selection,
+        add_noise=add_noise_button
     )
     
 def correlation_matrix(data: pd.core.frame.DataFrame) -> None:
