@@ -7,14 +7,16 @@ Solar energy is a key renewable resource and its adoption is forecast to grow st
 
 Much of this growth is anticipated to be in distributed PV, i.e. horizontal cells installed on home- and building-owners' roofs, and this is forecasted to grow from 180 TWh to 6–10 TWh by 2050. As such, it is important to be able to reliably predict the output of such cells in order to integrate them with supply grids and support the transition to greener economies.
 
-Initial aims of the project are as follows.
-1. EDA, with interactive plots that could potentially serve as the basis for a dashboard.
-2. Replication of the results of the paper using standard machine learning algorithms.
-3. Investigation of how far ahead of time it is possible to reliably forecast the power output with the given data.
-4. As a possible extension, augmentation of the data with forecasts with an aim to reliably predict 24 hours in advance, which is about what would be required for the power to be a viable energy source for the grid. Success on this point will depend largely on the quantity and quality of the data for inference purposes and the results of the above steps.
+Initial aims of the project can be split into two main parts.
+1. Following the paper, initial EDA of the entire dataset, then modelling to predict the power output for a given array and a comparison of the results with those of the paper.
+2. Interactive plots of the dataset broken down by location. This along with aggregated information could be developed into an analytics dashboard.
+
+Possible extensions once the above are completed include:
+- an investigation of how far ahead of time it is possible to reliably forecast the power output with the given data;
+- augmentation of the data with forecasts with an aim to reliably predict 24 hours in advance, which is about what would be required for the power to be a viable energy source for the grid.
 
 ## Dataset
-It contains 14 months of data taken at 12 Northern Hemisphere locations having varying climatic conditions; in total, we have 21045 data points. Data recorded was related to the following: 
+The dataset contains 14 months of data taken at 12 Northern Hemisphere locations having varying climatic conditions; in total, we have 21045 data points. Data recorded was related to the following. 
 - Location 
 - Date 
 - Time sampled 

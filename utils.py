@@ -109,6 +109,37 @@ def add_day_month(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
     data = data[[f for f in data.columns if f != 'Power (W)'] + ['Power (W)']]
     return data
 
+def numerical_distributions(df: pd.core.frame.DataFrame, features: List[str], bins: int = 32) -> None:
+    """
+    Plot distributions of all numerical features at once. 
+    
+    Args:
+        df: The dataset.
+        features: List of features to plot. Should only be numerical features.
+        bins (optional): Number of bins that the histograms use.
+    """
+    # Set plot dimensions
+    nplots = len(features)
+    ncols = (nplots if nplots < 3 else 3)
+    nrows = (nplots // 3 if nplots % 3 == 0 else nplots // 3 + 1)
+
+    _, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(4*ncols, 3*nrows))
+    plt.tight_layout()
+    
+    for i, ax_ in enumerate(ax.flatten()):
+        if i >= nplots:
+            # Suppress axes without plots
+            ax_.axis('off')
+        else:
+            x = df[features[i]].values
+            sns.histplot(x, bins=bins, color=COLORS[2], ax=ax_)
+            ax_.set_xlabel(f"{features[i]}")
+            ylabel = ("Count" if i % 3 == 0 else "")
+            ax_.set_ylabel(ylabel)
+            ax_.tick_params(axis="both")
+            
+    plt.subplots_adjust(hspace=0.25, wspace=0.2)
+    plt.show()
 
 def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year') -> folium.Map:
     """
