@@ -98,7 +98,6 @@ def visualise_missing_data(df: pd.core.frame.DataFrame) -> None:
 
     plt.show()
     
-
 def add_day_month(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
     if 'month_of_year' in df.columns:
         return df
@@ -109,20 +108,26 @@ def add_day_month(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
     data = data[[f for f in data.columns if f != 'Power (W)'] + ['Power (W)']]
     return data
 
-def numerical_distributions(df: pd.core.frame.DataFrame, features: List[str], bins: int = 32) -> None:
+def numerical_distributions(
+    df: pd.core.frame.DataFrame, 
+    features: List[str], 
+    bins: int = 32,
+    plot_type: str = 'hist') -> None:
     """
-    Plot distributions of all numerical features at once. 
+    Plot distributions of all numerical features at once. Can plot either histograms or
+    KDEs.
     
     Args:
         df: The dataset.
         features: List of features to plot. Should only be numerical features.
         bins (optional): Number of bins that the histograms use.
+        plot_type (optional): Type of plot. Can be 'hist' (default) or 'kde'
     """
     # Set plot dimensions
     nplots = len(features)
     ncols = (nplots if nplots < 3 else 3)
     nrows = (nplots // 3 if nplots % 3 == 0 else nplots // 3 + 1)
-
+    
     _, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(4*ncols, 3*nrows))
     plt.tight_layout()
     
@@ -132,14 +137,48 @@ def numerical_distributions(df: pd.core.frame.DataFrame, features: List[str], bi
             ax_.axis('off')
         else:
             x = df[features[i]].values
-            sns.histplot(x, bins=bins, color=COLORS[2], ax=ax_)
+            if plot_type == 'hist':
+                sns.histplot(x, bins=bins, color=COLORS[2], ax=ax_)
+                ylabel = "Count"
+            elif plot_type == 'kde':
+                sns.kdeplot(x, color=COLORS[2], ax=ax_)
+                ylabel = "Density"
+            elif plot_type == 'box':
+                sns.boxplot(x, color=COLORS[2], ax=ax_, width=0.25, medianprops={'color': 'yellow', 'alpha': 0.9, 'linewidth': 1.5})
+                ylabel = ""
             ax_.set_xlabel(f"{features[i]}")
-            ylabel = ("Count" if i % 3 == 0 else "")
-            ax_.set_ylabel(ylabel)
+            ax_.set_ylabel((ylabel if i % 3 == 0 else ""))
             ax_.tick_params(axis="both")
             
     plt.subplots_adjust(hspace=0.25, wspace=0.2)
     plt.show()
+    
+def plot_skew(df: pd.core.frame.DataFrame, features: List[str]) -> None:
+    """
+    Bar chart to visualise skews of numerical features.
+    
+    Args:
+        df: The dataset.
+        features: List of numerical features.
+    """
+    x = df[features].skew()
+    skews = np.round(x.values, 2)
+    labels = x.index
+    bars = plt.bar(x=labels, height=skews, color='#5f85a6')
+
+    for bar, skew in zip(bars, skews):
+        if bar.get_height() < 0:
+            pos = bar.get_height() - 0.3
+        else:
+            pos = bar.get_height() 
+        plt.text(bar.get_x() + bar.get_width() / 2, pos, skew,
+                ha='center', va='bottom', color='black', fontsize=10)
+        
+    plt.xticks(range(len(labels)), labels=[l.replace(' ', '\n') if l != 'AmbientTemp (deg C)' else 'AmbientTemp\n(deg C)' for l in labels], fontsize=9, rotation=45)
+    plt.ylabel("Skew")
+    plt.show();
+
+    
 
 def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year') -> folium.Map:
     """
