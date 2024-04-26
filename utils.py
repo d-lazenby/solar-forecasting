@@ -22,8 +22,11 @@ colors = {'white': '#fdfdfd',
           'black': '#000000'}
 
 COLORS = [v for v in colors.values()]
-
 sns.set_palette(sns.color_palette(COLORS))
+
+MONTHS = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 
+          7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
+
 
 def fix_dates(data: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
     if 'Datetime' in data.columns:
@@ -178,6 +181,40 @@ def plot_skew(df: pd.core.frame.DataFrame, features: List[str]) -> None:
     plt.ylabel("Skew")
     plt.show();
 
+def plot_power_against_time(df: pd.core.frame.DataFrame) -> None:
+    """
+    Line plot to show relationship of average power against timeframe of either month of year or
+    hour of day.
+    
+    Args:
+        df: The dataset.
+    """
+    time_increments = ['hour_of_day', 'month_of_year']
+    power = 'Power (W)'
+
+    if 'month_of_year' not in df.columns:
+        df = add_day_month(df)
+        
+    _, ax = plt.subplots(nrows=1, ncols=2, figsize=(12,4))
+
+    for i, ax_ in enumerate(ax.flatten()):
+        data = df[[power, time_increments[i]]].copy()
+        data_grouped = data.groupby(time_increments[i]).agg(({power: ['mean', 'std']}))
+
+        keys = data_grouped[power].index
+        values = data_grouped[power]['mean'].values
+        stds = data_grouped[power]['std'].values
+
+        ax_.plot(keys, values, '-o', color=COLORS[2])
+        ax_.fill_between(keys, values - stds, values + stds, alpha=0.2, color=COLORS[3])
+        ax_.set_title(f'Avg. {power} / {time_increments[i].split("_")[0]}')
+        ax_.set_ylabel(f'Avg. {power}')
+        ax_.set_xlabel(time_increments[i][0].upper() + time_increments[i][1:].replace('_', ' '))
+        if time_increments[i] == 'month_of_year':
+            ax_.set_xticks(keys, labels=[MONTHS[k] for k in keys], fontsize=11)
+            
+    plt.show();
+
     
 
 def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year') -> folium.Map:
@@ -189,9 +226,7 @@ def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year
         df: The dataset.
         time_increment (optional): how to average the power output. Can be 'month_of_year' or 'hour_of_day'. 
     """
-    MONTHS = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 
-              7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
-
+    
     power = 'Power (W)'
     if 'month_of_year' not in df.columns:
         df = add_day_month(df)
