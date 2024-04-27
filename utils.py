@@ -167,7 +167,8 @@ def plot_skew(df: pd.core.frame.DataFrame, features: List[str]) -> None:
     x = df[features].skew()
     skews = np.round(x.values, 2)
     labels = x.index
-    bars = plt.bar(x=labels, height=skews, color='#5f85a6')
+    bars = plt.bar(x=labels, height=skews, color=COLORS[2], edgecolor=COLORS[1])
+    
 
     for bar, skew in zip(bars, skews):
         if bar.get_height() < 0:
@@ -178,6 +179,7 @@ def plot_skew(df: pd.core.frame.DataFrame, features: List[str]) -> None:
                 ha='center', va='bottom', color='black', fontsize=10)
         
     plt.xticks(range(len(labels)), labels=[l.replace(' ', '\n') if l != 'AmbientTemp (deg C)' else 'AmbientTemp\n(deg C)' for l in labels], fontsize=9, rotation=45)
+    plt.ylim([-5.7, 1.2])
     plt.ylabel("Skew")
     plt.show();
 

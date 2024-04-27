@@ -2,6 +2,8 @@
 
 This project explores a photovoltaic (PV) dataset with a view to investigating its potential for forecasting power output. The dataset is taken from [Kaggle](https://www.kaggle.com/datasets/saurabhshahane/northern-hemisphere-horizontal-photovoltaic) and accompanies the paper [*Machine Learning Modeling of Horizontal Photovoltaics Using Weather and Location Data*](https://www.mdpi.com/1996-1073/13/10/2570) by Pasion et al. 
 
+The two Jupyter notebooks respectively contain EDA for the entire dataset and examples of some interactive plots where the data is broken down by location. Code for making the plots is in `utils.py`.
+
 ## Motivation and aims
 Solar energy is a key renewable resource and its adoption is forecast to grow steeply as the price of PV falls. The numerous benefits of solar adoption include the reduction of air pollution by replacing traditional fuel sources like wood and coal, thereby combating the climate crisis while improving health, stimulus to economies by creating employment opportunities and contributing to economic growth, and providing access to modern and reliable energy services in developing countries. 
 
