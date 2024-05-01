@@ -207,7 +207,7 @@ def plot_power_against_time(df: pd.core.frame.DataFrame) -> None:
         values = data_grouped[power]['mean'].values
         stds = data_grouped[power]['std'].values
 
-        ax_.plot(keys, values, '-o', color=COLORS[2])
+        ax_.plot(keys, values, '-o', color=COLORS[2], markeredgecolor=COLORS[1])
         ax_.fill_between(keys, values - stds, values + stds, alpha=0.2, color=COLORS[3])
         ax_.set_title(f'Avg. {power} / {time_increments[i].split("_")[0]}')
         ax_.set_ylabel(f'Avg. {power}')
