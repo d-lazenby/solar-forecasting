@@ -22,7 +22,10 @@ colors = {'white': '#fdfdfd',
           'black': '#000000'}
 
 COLORS = [v for v in colors.values()]
-sns.set_palette(sns.color_palette(COLORS))
+cmap = "twilight"
+COLORS = sns.color_palette(cmap)
+sns.set_palette(COLORS)
+
 
 MONTHS = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 
           7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
@@ -84,8 +87,8 @@ def visualise_missing_data(df: pd.core.frame.DataFrame) -> None:
     # Plot bar chart
     plt.figure(figsize=(8,4))
 
-    bars1 = plt.bar(locations, num_readings, color=COLORS[2])
-    bars2 = plt.bar(locations, missing_readings, bottom=num_readings, color=COLORS[3], alpha=0.3)
+    bars1 = plt.bar(locations, num_readings, color=None)
+    bars2 = plt.bar(locations, missing_readings, bottom=num_readings, color=None, alpha=0.2)
 
     plt.tight_layout()
 
@@ -117,14 +120,14 @@ def numerical_distributions(
     bins: int = 32,
     plot_type: str = 'hist') -> None:
     """
-    Plot distributions of all numerical features at once. Can plot either histograms or
-    KDEs.
+    Plot distributions of all numerical features at once. Can plot histograms,
+    KDEs or boxplots.
     
     Args:
         df: The dataset.
         features: List of features to plot. Should only be numerical features.
         bins (optional): Number of bins that the histograms use.
-        plot_type (optional): Type of plot. Can be 'hist' (default) or 'kde'
+        plot_type (optional): Type of plot. Can be 'hist' (default), 'kde' or 'box'.
     """
     # Set plot dimensions
     nplots = len(features)
@@ -141,16 +144,19 @@ def numerical_distributions(
         else:
             x = df[features[i]].values
             if plot_type == 'hist':
-                sns.histplot(x, bins=bins, color=COLORS[2], ax=ax_)
+                sns.histplot(x, bins=bins, color=COLORS[i % len(COLORS)], ax=ax_)
                 ylabel = "Count"
+                ax_.set_ylabel((ylabel if i % 3 == 0 else ""))
+                ax_.set_xlabel(f"{features[i]}")
             elif plot_type == 'kde':
-                sns.kdeplot(x, color=COLORS[2], ax=ax_)
+                sns.kdeplot(x, color=COLORS[i % len(COLORS)], ax=ax_, linewidth=2)
                 ylabel = "Density"
+                ax_.set_ylabel((ylabel if i % 3 == 0 else ""))
+                ax_.set_xlabel(f"{features[i]}")
             elif plot_type == 'box':
-                sns.boxplot(x, color=COLORS[2], ax=ax_, width=0.25, medianprops={'color': 'yellow', 'alpha': 0.9, 'linewidth': 1.5})
-                ylabel = ""
-            ax_.set_xlabel(f"{features[i]}")
-            ax_.set_ylabel((ylabel if i % 3 == 0 else ""))
+                sns.boxplot(x, color=COLORS[i % len(COLORS)], ax=ax_, width=0.25, medianprops={'color': 'yellow', 'alpha': 0.9, 'linewidth': 1.5})
+                ylabel = f"{features[i]}"
+                ax_.set_ylabel(ylabel)
             ax_.tick_params(axis="both")
             
     plt.subplots_adjust(hspace=0.25, wspace=0.2)
@@ -167,7 +173,7 @@ def plot_skew(df: pd.core.frame.DataFrame, features: List[str]) -> None:
     x = df[features].skew()
     skews = np.round(x.values, 2)
     labels = x.index
-    bars = plt.bar(x=labels, height=skews, color=COLORS[2], edgecolor=COLORS[1])
+    bars = plt.bar(x=labels, height=skews, color=None, edgecolor=None)
     
 
     for bar, skew in zip(bars, skews):
@@ -207,8 +213,8 @@ def plot_power_against_time(df: pd.core.frame.DataFrame) -> None:
         values = data_grouped[power]['mean'].values
         stds = data_grouped[power]['std'].values
 
-        ax_.plot(keys, values, '-o', color=COLORS[2], markeredgecolor=COLORS[1])
-        ax_.fill_between(keys, values - stds, values + stds, alpha=0.2, color=COLORS[3])
+        ax_.plot(keys, values, '-o', color=None, markeredgecolor=None)
+        ax_.fill_between(keys, values - stds, values + stds, alpha=0.2, color=None)
         ax_.set_title(f'Avg. {power} / {time_increments[i].split("_")[0]}')
         ax_.set_ylabel(f'Avg. {power}')
         ax_.set_xlabel(time_increments[i][0].upper() + time_increments[i][1:].replace('_', ' '))
@@ -260,8 +266,8 @@ def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year
         values = np.array(values)
         stds = np.array(stds)
         
-        plt.plot(keys, values, '-o', label=label, color=COLORS[2])
-        plt.fill_between(keys, values - stds, values + stds, alpha=0.2, color=COLORS[3])
+        plt.plot(keys, values, '-o', label=label, color=None)
+        plt.fill_between(keys, values - stds, values + stds, alpha=0.2, color=None)
         plt.ylim(ymin, ymax)
         plt.title(f'Location {key} avg. {power} / {time_increment.split("_")[0]}')
         plt.ylabel(f'Avg. {power}')
@@ -300,7 +306,7 @@ def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year
         iframe = folium.IFrame(html(enc.decode('UTF-8', errors='ignore')), width=width+10, height=height+10)
         popup = folium.Popup(iframe, max_width=300, max_height=250)
         fg.add_child(folium.CircleMarker(location=[lat, lng], radius = 15, popup=popup,
-        fill_color=COLORS[1], color='', fill_opacity=0.5))
+        fill_color=None, color='', fill_opacity=0.5))
         m.add_child(fg)
         
     return m
@@ -319,7 +325,7 @@ def histogram_plot(df: pd.core.frame.DataFrame, features: List[str], bins: int =
         plt.figure(figsize=(8, 5))
         x = data[feature].values
         plt.xlabel(f"{feature}", fontsize=FONT_SIZE_AXES)
-        sns.histplot(x, bins=bins, color=COLORS[2])
+        sns.histplot(x, bins=bins, color=None)
         plt.ylabel(f"Count", fontsize=FONT_SIZE_AXES)
         plt.title(f"{feature} at {location}", fontsize=FONT_SIZE_TITLE)
         plt.tick_params(axis="both", labelsize=FONT_SIZE_TICKS)
@@ -364,8 +370,8 @@ def compare_histograms(df: pd.core.frame.DataFrame, features: List[str], bins: i
         ax1.set_ylabel(f"Count", fontsize=FONT_SIZE_AXES)
         ax2.set_ylabel(f"Count", fontsize=FONT_SIZE_AXES)
 
-        sns.histplot(x1, bins=bins, ax=ax1, color=COLORS[2])
-        sns.histplot(x2, bins=bins, ax=ax2, color=COLORS[1])
+        sns.histplot(x1, bins=bins, ax=ax1, color=None)
+        sns.histplot(x2, bins=bins, ax=ax2, color=None)
 
         ax1.set_title(f"{location1}", fontsize=FONT_SIZE_TITLE)
         ax1.tick_params(axis="both", labelsize=FONT_SIZE_TICKS)
@@ -411,6 +417,10 @@ def compare_box_violins(df: pd.core.frame.DataFrame, features: List[str]) -> Non
         features: List of features to include in the plot.
     """
     locations = df["Location"].unique()
+    if len(locations) > len(COLORS):
+        # Extend the color map to the number of locations.
+        q, r = divmod(len(locations), len(COLORS))
+        long_colors = q * COLORS + COLORS[:r]
 
     def _plot(feature="AmbientTemp", plot_type="box"):
         plt.figure(figsize=(18, 8))
@@ -418,11 +428,14 @@ def compare_box_violins(df: pd.core.frame.DataFrame, features: List[str]) -> Non
         plt.yscale(scale)
         if plot_type == "Violin":
             sns.violinplot(
-                data=df, y=feature, x="Location", order=locations, color=COLORS[2]
-            )
+                data=df, y=feature, x="Location", order=locations, hue='Location', palette=long_colors 
+                )
         elif plot_type == "Box":
-            sns.boxplot(data=df, y=feature, x="Location", order=locations, color=COLORS[2])
-        plt.title(f"Feature: {feature}", fontsize=FONT_SIZE_TITLE)
+            sns.boxplot(
+                data=df, y=feature, x="Location", order=locations, hue='Location', palette=long_colors, 
+                medianprops={'color': 'yellow', 'alpha': 0.9, 'linewidth': 1.5}
+                )
+        plt.title(f"{feature}", fontsize=FONT_SIZE_TITLE)
         plt.ylabel(f"{feature}", fontsize=FONT_SIZE_AXES)
         plt.xlabel(f"Location", fontsize=FONT_SIZE_AXES)
         plt.tick_params(axis="both", labelsize=FONT_SIZE_TICKS)
@@ -466,7 +479,7 @@ def scatterplot(df: pd.core.frame.DataFrame, features: List[str]) -> None:
 
         plt.plot(
             x, y,
-            marker='o', markersize=7, markerfacecolor=COLORS[2], 
+            marker='o', markersize=7, markerfacecolor=None, 
             markeredgewidth=0,
             linestyle='', 
             alpha=0.2
@@ -508,8 +521,10 @@ def correlation_matrix(data: pd.core.frame.DataFrame) -> None:
     Args:
         data: The dataset used.
     """
+    
+    continuous_cmap = sns.diverging_palette(12, 250, s=100, l=40, center='light', as_cmap=True)
     plt.figure(figsize=(10, 10))
-    sns.heatmap(data.corr(), annot=True, cbar=False, cmap=COLORS, vmin=-1, vmax=1)
+    sns.heatmap(data.corr(), annot=True, cbar=False, cmap=continuous_cmap, vmin=-1, vmax=1)
     plt.title("Correlation Matrix of Features")
     plt.show()
     
@@ -527,8 +542,7 @@ def plot_time_series(df: pd.core.frame.DataFrame, features: List[str]) -> None:
         data = data[data["Datetime"] > date_range[0]]
         data = data[data["Datetime"] < date_range[1]]
         plt.figure(figsize=(15, 5))
-        plt.plot(data["Datetime"], data[feature], "-", color=COLORS[2])
-        # plt.title(f"Time series of {feature}", fontsize=FONT_SIZE_TITLE)
+        plt.plot(data["Datetime"], data[feature], "-", color=None)
         plt.ylabel(f"{feature}", fontsize=FONT_SIZE_AXES)
         plt.xlabel(f"Date", fontsize=FONT_SIZE_AXES)
         plt.tick_params(axis="both", labelsize=FONT_SIZE_TICKS)
@@ -565,3 +579,18 @@ def plot_time_series(df: pd.core.frame.DataFrame, features: List[str]) -> None:
         feature=feature_selection,
         date_range=date_slider_selection,
     )
+    
+def group_plots(df: pd.core.frame.DataFrame, cat_feature: str, num_feature: str) -> None:
+    """
+    Plots numerical features grouped by a categorical feature to show interaction effects.
+    
+    Args:
+        df: The dataset.
+        cat_feature: The grouping feature.
+        num_feature: The numerical feature.
+    """
+    sns.lmplot(
+        x=num_feature, y="Power (W)", hue=cat_feature, col=cat_feature,
+        data=df, scatter_kws={"edgecolor": 'w'}, col_wrap=3, height=4, palette=COLORS
+    )
+    plt.show()
