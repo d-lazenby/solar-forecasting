@@ -14,14 +14,6 @@ FONT_SIZE_TICKS = 15
 FONT_SIZE_TITLE = 20
 FONT_SIZE_AXES = 17
 
-colors = {'white': '#fdfdfd',
-          'dark blue': '#06072c',
-          'chalk blue': '#5f85a6',
-          'light gray': '#cfd1d4',
-          'blue gray': '#a3aab5',
-          'black': '#000000'}
-
-COLORS = [v for v in colors.values()]
 cmap = "twilight"
 COLORS = sns.color_palette(cmap)
 sns.set_palette(COLORS)
