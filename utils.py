@@ -141,7 +141,7 @@ def numerical_distributions(
                 ax_.set_ylabel((ylabel if i % 3 == 0 else ""))
                 ax_.set_xlabel(f"{features[i]}")
             elif plot_type == 'kde':
-                sns.kdeplot(x, color=COLORS[i % len(COLORS)], ax=ax_, linewidth=2)
+                sns.kdeplot(x, color=COLORS[i % len(COLORS)], ax=ax_, linewidth=2, fill=True)
                 ylabel = "Density"
                 ax_.set_ylabel((ylabel if i % 3 == 0 else ""))
                 ax_.set_xlabel(f"{features[i]}")
@@ -162,9 +162,8 @@ def plot_skew(df: pd.core.frame.DataFrame, features: List[str]) -> None:
         df: The dataset.
         features: List of numerical features.
     """
-    x = df[features].skew()
-    skews = np.round(x.values, 2)
-    labels = x.index
+    skews = df[features].skew().round(2)
+    labels = skews.index
     bars = plt.bar(x=labels, height=skews, color=None, edgecolor=None)
     
 
