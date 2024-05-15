@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import matplotlib.colors
 import matplotlib.pyplot as plt
 import seaborn as sns
 from ipywidgets import widgets, interact
@@ -164,7 +165,13 @@ def plot_skew(df: pd.core.frame.DataFrame, features: List[str]) -> None:
     """
     skews = df[features].skew().round(2)
     labels = skews.index
-    bars = plt.bar(x=labels, height=skews, color=None, edgecolor=None)
+    
+    # Color bars based on values 
+    v = max([abs(skews.min()), abs(skews.max())])
+    norm = matplotlib.colors.Normalize(vmin=-v, vmax=v)
+    cmap = matplotlib.colors.ListedColormap(sns.diverging_palette(12, 250, s=100, l=40, center='light', as_cmap=False, n=100))
+
+    bars = plt.bar(x=labels, height=skews, color=cmap(norm(skews.values)), edgecolor=None)
     
 
     for bar, skew in zip(bars, skews):
