@@ -173,7 +173,6 @@ def plot_skew(df: pd.core.frame.DataFrame, features: List[str]) -> None:
 
     bars = plt.bar(x=labels, height=skews, color=cmap(norm(skews.values)), edgecolor=None)
     
-
     for bar, skew in zip(bars, skews):
         if bar.get_height() < 0:
             pos = bar.get_height() - 0.3
@@ -211,8 +210,8 @@ def plot_power_against_time(df: pd.core.frame.DataFrame) -> None:
         values = data_grouped[power]['mean'].values
         stds = data_grouped[power]['std'].values
 
-        ax_.plot(keys, values, '-o', color=None, markeredgecolor=None)
-        ax_.fill_between(keys, values - stds, values + stds, alpha=0.2, color=None)
+        ax_.plot(keys, values, '-o', color=COLORS[3], markeredgecolor=None, markerfacecolor=None)
+        ax_.fill_between(keys, values - stds, values + stds, alpha=0.2, color=COLORS[0])
         ax_.set_title(f'Avg. {power} / {time_increments[i].split("_")[0]}')
         ax_.set_ylabel(f'Avg. {power}')
         ax_.set_xlabel(time_increments[i][0].upper() + time_increments[i][1:].replace('_', ' '))
