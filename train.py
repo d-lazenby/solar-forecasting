@@ -11,6 +11,14 @@ from sklearn.preprocessing import StandardScaler
 
 from xgboost import XGBRegressor
 
+FONT_SIZE_TICKS = 15
+FONT_SIZE_TITLE = 20
+FONT_SIZE_AXES = 17
+
+COLORS = sns.color_palette("twilight")
+sns.set_palette(COLORS)
+
+
 def load_data():
     data = pd.read_csv('data/base_features.csv')
     y = data.pop('Power (W)')
@@ -124,7 +132,7 @@ def run_experiment(exp_name, inputs_train, target_train, inputs_valid, target_va
         
     experiment.end()
     
-def test_run(inputs_train, target_train, inputs_valid, target_valid, baseline=None):
+def run_test(inputs_train, target_train, inputs_valid, target_valid, baseline=None):
     model = get_model()
     model.fit(inputs_train, target_train, 
             early_stopping_rounds=5, 
@@ -140,3 +148,28 @@ def test_run(inputs_train, target_train, inputs_valid, target_valid, baseline=No
         return metrics, relative_metrics
     else:
         return metrics
+    
+def compare_metrics(scores: dict, baseline: dict) -> None:
+    """
+    Plots metrics against one another relative to a provided baseline for visual comparison.
+    
+    Args:
+        scores: metric values for each of the experiments.
+        baseline: metric values for the baseline.
+    """
+    metric_labels = list(baseline.keys())
+    xticks_len = len(scores) - 1
+    _, ax = plt.subplots(ncols=1, nrows=len(metric_labels), figsize=(6, 12), sharex=True)
+    for i, ax_ in enumerate(ax.flatten()):
+        metric = metric_labels[i]
+        values = [scores[key][metric] for key in scores]
+        ax_.plot(values, color=COLORS[i], label=f"{metric.upper()}")
+        ax_.plot([0, xticks_len], [baseline[metric], baseline[metric]], color=COLORS[4], ls='--', label=f"Baseline {metric.upper()}")
+        ax_.set_ylabel(f"{metric.upper()}")
+        ax_.legend()
+    plt.xlabel("Number of features removed")
+    plt.legend()
+    plt.subplots_adjust(hspace=0.0)
+    
+    plt.show();
+
