@@ -15,8 +15,7 @@ FONT_SIZE_TICKS = 15
 FONT_SIZE_TITLE = 20
 FONT_SIZE_AXES = 17
 
-cmap = "twilight"
-COLORS = sns.color_palette(cmap)
+COLORS = sns.color_palette("twilight")
 sns.set_palette(COLORS)
 
 
@@ -419,7 +418,7 @@ def compare_box_violins(df: pd.core.frame.DataFrame, features: List[str]) -> Non
         q, r = divmod(len(locations), len(COLORS))
         long_colors = q * COLORS + COLORS[:r]
 
-    def _plot(feature="AmbientTemp", plot_type="box"):
+    def _plot(feature="AmbientTemp (deg C)", plot_type="Box"):
         plt.figure(figsize=(18, 8))
         scale = "linear"
         plt.yscale(scale)
@@ -427,7 +426,7 @@ def compare_box_violins(df: pd.core.frame.DataFrame, features: List[str]) -> Non
             sns.violinplot(
                 data=df, y=feature, x="Location", order=locations, hue='Location', palette=long_colors 
                 )
-        elif plot_type == "Box":
+        else:
             sns.boxplot(
                 data=df, y=feature, x="Location", order=locations, hue='Location', palette=long_colors, 
                 medianprops={'color': 'yellow', 'alpha': 0.9, 'linewidth': 1.5}
@@ -512,7 +511,7 @@ def scatterplot(df: pd.core.frame.DataFrame, features: List[str]) -> None:
         add_noise=add_noise_button
     )
     
-def correlation_matrix(data: pd.core.frame.DataFrame) -> None:
+def correlation_matrix(data: pd.core.frame.DataFrame, annot: bool = True) -> None:
     """Plots correlation matrix for a given dataset.
 
     Args:
@@ -521,7 +520,7 @@ def correlation_matrix(data: pd.core.frame.DataFrame) -> None:
     
     continuous_cmap = sns.diverging_palette(12, 250, s=100, l=40, center='light', as_cmap=True)
     plt.figure(figsize=(10, 10))
-    sns.heatmap(data.corr(), annot=True, cbar=False, cmap=continuous_cmap, vmin=-1, vmax=1)
+    sns.heatmap(data.corr(), annot=annot, cbar=False, cmap=continuous_cmap, vmin=-1, vmax=1)
     plt.title("Correlation Matrix of Features")
     plt.show()
     
