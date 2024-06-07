@@ -9,6 +9,8 @@ import folium
 from collections import defaultdict
 import base64
 
+from sklearn.feature_selection import mutual_info_regression
+
 from typing import List
 
 FONT_SIZE_TICKS = 15
@@ -168,7 +170,7 @@ def plot_skew(df: pd.core.frame.DataFrame, features: List[str]) -> None:
     # Color bars based on values 
     v = max([abs(skews.min()), abs(skews.max())])
     norm = matplotlib.colors.Normalize(vmin=-v, vmax=v)
-    cmap = matplotlib.colors.ListedColormap(sns.diverging_palette(12, 250, s=100, l=40, center='light', as_cmap=False, n=100))
+    cmap = matplotlib.colors.ListedColormap(sns.diverging_palette(12, 250, s=100, l=40, center='light', as_cmap=False, n=100)).reversed()
 
     bars = plt.bar(x=labels, height=skews, color=cmap(norm(skews.values)), edgecolor=None)
     
@@ -518,7 +520,7 @@ def correlation_matrix(data: pd.core.frame.DataFrame, annot: bool = True) -> Non
         data: The dataset used.
     """
     
-    continuous_cmap = sns.diverging_palette(12, 250, s=100, l=40, center='light', as_cmap=True)
+    continuous_cmap = sns.diverging_palette(12, 250, s=100, l=40, center='light', as_cmap=True).reversed()
     plt.figure(figsize=(10, 10))
     sns.heatmap(data.corr(), annot=annot, cbar=False, cmap=continuous_cmap, vmin=-1, vmax=1)
     plt.title("Correlation Matrix of Features")
@@ -590,3 +592,22 @@ def group_plots(df: pd.core.frame.DataFrame, cat_feature: str, num_feature: str)
         data=df, scatter_kws={"edgecolor": 'w'}, col_wrap=3, height=4, palette=COLORS
     )
     plt.show()
+    
+def make_mi_scores(inputs, target):
+    inputs = inputs.copy()
+    for col in inputs.select_dtypes(["object", "category"]):
+        inputs[col], _ = inputs[col].factorize()
+    # All discrete features should now have integer dtypes
+    discrete_features = [pd.api.types.is_integer_dtype(t) for t in inputs.dtypes]
+    mi_scores = mutual_info_regression(inputs, target, discrete_features=discrete_features, random_state=0)
+    mi_scores = pd.Series(mi_scores, name="MI Scores", index=inputs.columns)
+    mi_scores = mi_scores.sort_values(ascending=False)
+    return mi_scores
+
+def plot_mi_scores(mi_scores):
+    mi_scores = mi_scores.sort_values(ascending=True)
+    yvalues = np.arange(len(mi_scores))
+    ylabels = list(mi_scores.index)
+    plt.barh(yvalues, mi_scores)
+    plt.yticks(yvalues, ylabels)
+    plt.title("Mutual Information Scores")
