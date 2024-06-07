@@ -593,7 +593,7 @@ def group_plots(df: pd.core.frame.DataFrame, cat_feature: str, num_feature: str)
     )
     plt.show()
     
-def make_mi_scores(inputs, target):
+def make_mi_scores(inputs: pd.core.frame.DataFrame, target: pd.Series) -> pd.Series:
     inputs = inputs.copy()
     for col in inputs.select_dtypes(["object", "category"]):
         inputs[col], _ = inputs[col].factorize()
@@ -604,7 +604,7 @@ def make_mi_scores(inputs, target):
     mi_scores = mi_scores.sort_values(ascending=False)
     return mi_scores
 
-def plot_mi_scores(mi_scores):
+def plot_mi_scores(mi_scores: pd.Series) -> None:
     mi_scores = mi_scores.sort_values(ascending=True)
     yvalues = np.arange(len(mi_scores))
     ylabels = list(mi_scores.index)
