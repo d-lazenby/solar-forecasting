@@ -221,7 +221,57 @@ def plot_power_against_time(df: pd.core.frame.DataFrame) -> None:
             
     plt.show();
 
+def plot_grouped_power_against_time(df: pd.core.frame.DataFrame, time_increment: str = 'hour_of_day', cat_col: str = 'Location') -> None:
+    """
+    Line plot to show relationship of average power against timeframe of either month of year or
+    hour of day grouped by categorical column, e.g. location or season.
     
+    Args:
+        df: The dataset.
+        time_increment (optional): 'hour_of_day' or 'month_of_year'.
+        cat_col (optional): Categorical column to group on. 
+    """
+    # time_increments = ['hour_of_day', 'month_of_year']
+    power = 'Power (W)'
+
+    if 'month_of_year' not in df.columns:
+        df = add_day_month(df)
+    
+    unique_cats = df[cat_col].unique()
+
+    nplots = len(unique_cats)
+    if nplots == 4:
+        ncols, nrows = 2, 2
+    else:    
+        ncols = (nplots if nplots < 3 else 3)
+        nrows = (nplots // 3 if nplots % 3 == 0 else nplots // 3 + 1)
+
+    _, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(4*ncols, 3*nrows), sharey=True)
+    plt.tight_layout()
+    # FILTER BY CAT COL FIRST THEN IT SHOULD BE EASY
+    data = df[[power, cat_col, time_increment]].copy()
+
+    for i, ax_ in enumerate(ax.flatten()):
+        if i >= nplots:
+            # Suppress axes without plots
+            ax_.axis('off')
+        else:
+            data_grouped = data[data[cat_col] == (cat_i := unique_cats[i])].groupby(time_increment)[power]
+            keys = data_grouped.mean().index
+            values = data_grouped.mean().values
+            stds = data_grouped.std().values
+            ax_.plot(keys, values, '-o', color=COLORS[3], markeredgecolor=None, markerfacecolor=None, label=f'{cat_i}')
+            ax_.fill_between(keys, values - stds, values + stds, alpha=0.2, color=COLORS[0])
+            # ax_.set_title(f'{cat_i}')
+            ax_.set_ylabel(f'Avg. {power}')
+            ax_.set_xlabel(time_increment[0].upper() + time_increment[1:].replace('_', ' '))
+            ax_.legend(loc='upper left')
+            if time_increment == 'month_of_year':
+                ax_.set_xticks(keys, labels=[MONTHS[k] for k in keys], fontsize=11, rotation=45)
+                ax_.set_xlabel(None)
+
+    plt.subplots_adjust(hspace=0.25, wspace=None)
+    plt.show()    
 
 def create_map(df: pd.core.frame.DataFrame, time_increment: str = 'month_of_year') -> folium.Map:
     """
