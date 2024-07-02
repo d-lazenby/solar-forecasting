@@ -661,3 +661,52 @@ def plot_mi_scores(mi_scores: pd.Series) -> None:
     plt.barh(yvalues, mi_scores)
     plt.yticks(yvalues, ylabels)
     plt.title("Mutual Information Scores")
+    
+def plot_percentages_by_label(df: pd.core.frame.DataFrame, feature: str) -> None:
+    
+    total_readings = df.shape[0]
+    temp_df = pd.Series(df[feature].value_counts() / total_readings)
+    
+    fig = temp_df.sort_values(ascending=False).plot.bar()
+    fig.set_xlabel(feature)
+    fig.axhline(y=0.05, color='red', ls='--')
+    fig.set_ylabel('Percentage of readings')
+    plt.show()
+    
+def calculate_mean_target_per_category(df: pd.core.frame.DataFrame, feature: str) -> None:
+
+    total_readings = df.shape[0]
+    temp_df = pd.Series(df[feature].value_counts() / total_readings).reset_index()
+    temp_df.columns = [feature, 'perc_readings']
+    temp_df = temp_df.merge(df.groupby([feature])['Power (W)'].mean().reset_index(),
+                            on=feature,
+                            how='left')
+
+    return temp_df
+
+def plot_categories(df: pd.core.frame.DataFrame, feature: str) -> None:
+    
+    _, ax = plt.subplots(figsize=(8,4))
+    plt.xticks(df.index, df[feature], rotation=90)
+
+    ax2 = ax.twinx()
+    ax.bar(df.index, df["perc_readings"], color='lightgrey')
+    ax2.plot(df.index, df["Power (W)"], color='green')
+    ax.axhline(y=0.05, color='red')
+    ax.set_ylabel('Percentage of readings per category')
+    ax.set_xlabel(feature)
+    ax2.set_ylabel('Average Power output (W) per category')
+    plt.show()
+    
+def group_rare_labels(df: pd.core.frame.DataFrame, feature: str) -> None:
+    total_houses = df.shape[0]
+
+    temp_df = pd.Series(df[feature].value_counts() / total_houses)
+
+    grouping_dict = {
+        k: ('rare' if k not in temp_df[temp_df >= 0.05].index else k) for k in temp_df.index
+    }
+
+    tmp = df[feature].map(grouping_dict)
+
+    return tmp
