@@ -663,7 +663,10 @@ def plot_mi_scores(mi_scores: pd.Series) -> None:
     plt.title("Mutual Information Scores")
     
 def plot_percentages_by_label(df: pd.core.frame.DataFrame, feature: str) -> None:
-    
+    """
+    Plots label frequency for categorical features with a red line to indicate potentially rare labels
+    that appear in less than 5% of the dataset. 
+    """
     total_readings = df.shape[0]
     temp_df = pd.Series(df[feature].value_counts() / total_readings)
     
@@ -674,7 +677,6 @@ def plot_percentages_by_label(df: pd.core.frame.DataFrame, feature: str) -> None
     plt.show()
     
 def calculate_mean_target_per_category(df: pd.core.frame.DataFrame, feature: str) -> None:
-
     total_readings = df.shape[0]
     temp_df = pd.Series(df[feature].value_counts() / total_readings).reset_index()
     temp_df.columns = [feature, 'perc_readings']
@@ -685,7 +687,6 @@ def calculate_mean_target_per_category(df: pd.core.frame.DataFrame, feature: str
     return temp_df
 
 def plot_categories(df: pd.core.frame.DataFrame, feature: str) -> None:
-    
     _, ax = plt.subplots(figsize=(8,4))
     plt.xticks(df.index, df[feature], rotation=90)
 
