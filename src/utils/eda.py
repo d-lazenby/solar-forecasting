@@ -6,6 +6,7 @@ import seaborn as sns
 import scipy.stats as stats
 
 from sklearn.feature_selection import mutual_info_regression
+from sklearn.decomposition import PCA
 
 from typing import List
 
@@ -366,4 +367,37 @@ def diagnostic_plots(df: pd.core.frame.DataFrame, features: List[str]) -> None:
         ax[i,2].set_title('Boxplot')
         
     plt.subplots_adjust(hspace=0.25, wspace=0.2)
+    plt.show()
+
+
+def plot_variance(pca: PCA) -> None:
+    # Create figure
+    _, ax = plt.subplots(nrows=1, ncols=2)
+    n = pca.n_components_
+    grid = np.arange(1, n + 1)
+    
+    # Explained variance
+    explained_var_ratio = pca.explained_variance_ratio_
+    sns.barplot(x=grid, y=explained_var_ratio, ax=ax[0], color=COLORS[0], edgecolor=COLORS[3])
+    ax[0].set(xlabel="Component", title="% Explained Variance", ylim=(0.0, 1.0))
+    
+    # Cumulative Variance
+    cumulative_var = np.cumsum(explained_var_ratio)
+    sns.lineplot(x=np.r_[0, grid], y=np.r_[0, cumulative_var], ax=ax[1], marker='o', markeredgecolor=COLORS[3])
+    ax[1].set(xlabel="Component", title="% Cumulative Variance", ylim=(0.0, 1.0))
+    
+    plt.show()
+    
+def hex_bin_plot(df: pd.core.frame.DataFrame, features: List[str], target: str) -> None:
+    if (n_features := len(features)) != 2:
+        raise ValueError(f"The function requires exactly 2 features and you have supplied {n_features}")
+
+    cmap = matplotlib.colors.ListedColormap(sns.diverging_palette(12, 250, s=100, l=40, center='light', as_cmap=False, n=100)).reversed()
+    
+    hb = plt.hexbin(df[features[0]], df[features[1]], C=df[target], gridsize=30, reduce_C_function=np.mean, cmap=cmap)
+    plt.colorbar(hb, label=f'Average {target}')
+    plt.xlabel('Humidity')
+    plt.ylabel('AmbientTemp')
+    plt.title(f'Hexbin Plot of {features[0]} against {features[1]}')
+
     plt.show()
