@@ -396,8 +396,8 @@ def hex_bin_plot(df: pd.core.frame.DataFrame, features: List[str], target: str) 
     
     hb = plt.hexbin(df[features[0]], df[features[1]], C=df[target], gridsize=30, reduce_C_function=np.mean, cmap=cmap)
     plt.colorbar(hb, label=f'Average {target}')
-    plt.xlabel('Humidity')
-    plt.ylabel('AmbientTemp')
+    plt.xlabel(f'{features[0]}')
+    plt.ylabel(f'{features[1]}')
     plt.title(f'Hexbin Plot of {features[0]} against {features[1]}')
 
     plt.show()
