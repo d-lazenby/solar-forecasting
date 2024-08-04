@@ -1,6 +1,12 @@
+from dotenv import load_dotenv
+import os
+
 from datetime import datetime
 import numpy as np
 import pandas as pd
+
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 def fix_dates(data: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
     if 'Datetime' in data.columns:
@@ -33,9 +39,9 @@ def fix_units(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
         
     return data
 
-def load_base_data():
+def load_base_data(path: str = DATA_PATH):
     # Set up the data for running experiments
-    raw = pd.read_csv("../data/raw.csv")
+    raw = pd.read_csv(path)
     data = fix_units(raw)
     data = fix_dates(data)
 
