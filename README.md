@@ -65,7 +65,7 @@ To evaluate each model, we used the $R^2$ score (or the coefficient of determina
 ```math
 R^2 = 1 - \frac{\sum_i(y_i - \hat{y}_i)^2}{\sum_i(y_i - \bar{y})^2},
 ```
-where $\{y_i\}$ are the target values, $\{\hat{y}_i\}$ are the predicted values for each row $X_i$ of the features matrix $\bm{X}$, and $\bar{y}$ is the mean of the target. If the numerator in the second term, the mean-squared error, is zero, then we have a perfect score of $R^2 = 1$. 
+where $\{y_i\}$ are the target values, $\{\hat{y}_i\}$ are the predicted values for each row $X_i$ of the feature matrix, and $\bar{y}$ is the mean of the target. If the numerator in the second term, the mean-squared error, is zero, then we have a perfect score of $R^2 = 1$. 
 
 The model trained was an XGBoost regressor. 
 
