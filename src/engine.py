@@ -6,12 +6,14 @@ from sklearn.metrics import r2_score
 from sklearn import set_config
 set_config(transform_output = "pandas")
 
+TRAIN_SIZE = 0.8
+
 def main(exp_name: str = None) -> None:
     
     X = preprocess_data()
     y = X.pop('PolyPwr')
     
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, random_state=0) 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=TRAIN_SIZE, random_state=0) 
 
     print(X_train.shape, X_test.shape)
     print(X_train.columns)

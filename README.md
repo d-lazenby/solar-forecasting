@@ -1,23 +1,35 @@
-# Solar Forecasting Using Weather and Location Data
 
-This project explores a photovoltaic (PV) dataset with a view to investigating its potential for forecasting power output. The dataset is taken from [Kaggle](https://www.kaggle.com/datasets/saurabhshahane/northern-hemisphere-horizontal-photovoltaic) and accompanies the paper [*Machine Learning Modeling of Horizontal Photovoltaics Using Weather and Location Data*](https://www.mdpi.com/1996-1073/13/10/2570) by Pasion et al. 
+<!-- <img src="./images/solar_farm.jpeg" width="500"/> -->
 
-The two Jupyter notebooks respectively contain EDA for the entire dataset and examples of some interactive plots where the data is broken down by location. Code for making the plots is in `utils.py`.
+# Solar forecasting with Weather and Location Data
 
-## Motivation and aims
-Solar energy is a key renewable resource and its adoption is forecast to grow steeply as the price of PV falls. The numerous benefits of solar adoption include the reduction of air pollution by replacing traditional fuel sources like wood and coal, thereby combating the climate crisis while improving health, stimulus to economies by creating employment opportunities and contributing to economic growth, and providing access to modern and reliable energy services in developing countries. 
+Solar energy is a key renewable resource – about 6% of the world's electricity is currently provided by solar panels covering an area the size of Jamaica. The growth of this resource is growing exponentially with a doubling of capacity every three years, and its adoption is forecast to continue to grow steeply as the price of PV falls. The numerous benefits of solar adoption include the reduction of air pollution by replacing traditional fuel sources like wood and coal, thereby combating the climate crisis while improving health, stimulus to economies by creating employment opportunities and contributing to economic growth, and the provision of access to modern and reliable energy services in developing countries. Much of this growth is anticipated to be in distributed photovoltaics (PV), i.e. horizontal cells installed on home- and building-owners' roofs, and this is forecasted to grow from 180 TWh to 6–10 TWh by 2050. As such, it is important to be able to reliably predict the output of such cells in order to integrate them with supply grids and support the transition to greener economies.
 
-Much of this growth is anticipated to be in distributed PV, i.e. horizontal cells installed on home- and building-owners' roofs, and this is forecasted to grow from 180 TWh to 6–10 TWh by 2050. As such, it is important to be able to reliably predict the output of such cells in order to integrate them with supply grids and support the transition to greener economies.
+## Project Overview
 
-Initial aims of the project can be split into two main parts.
-1. Following the paper, initial EDA of the entire dataset, then modelling to predict the power output for a given array and a comparison of the results with those of the paper.
-2. Interactive plots of the dataset broken down by location. This along with aggregated information could be developed into an analytics dashboard.
+This project uses a PV dataset with aggregated readings from 12 sites across the US to predict the power output. The main steps carried out were as follows.
 
-Possible extensions once the above are completed include:
-- an investigation of how far ahead of time it is possible to reliably forecast the power output with the given data;
-- augmentation of the data with forecasts with an aim to reliably predict 24 hours in advance, which is about what would be required for the power to be a viable energy source for the grid.
+- Exploratory data analysis (see `eda.ipynb`)
+- Notes on experiments with modification of the feature engineering pipeline to improve performance (see `notebooks` directory)
+- Scripts (see `src` directory):
+    - `eda.py`: code for plots used in EDA, the notebooks and analysis of results
+    - `preprocessing.py`: code for loading and preprocessing the data and building the feature engineering pipeline
+    - `train.py`: code for setting up the cross-validation loop and logging experiment tracking to CometML
+    - `engine.py`: main script for running experiments. 
 
-## Dataset
+#### Software and Packages
+
+The project was run in a VS Code virtual environment running Python 3.12.4. The main packages used were as follows.
+
+- General Purpose: `os`, `dotenv`, `typing`
+- Data Manipulation: `numpy`, `pandas`, `datetime`
+- Data Visualization: `matplotlib`, `seaborn`, `folium`
+- Machine Learning: `sklearn`, `feature-engine`, `sklego`, `comet-ml`
+
+## Data
+
+The dataset is taken from [Kaggle](https://www.kaggle.com/datasets/saurabhshahane/northern-hemisphere-horizontal-photovoltaic) and accompanies the paper [*Machine Learning Modeling of Horizontal Photovoltaics Using Weather and Location Data*](https://www.mdpi.com/1996-1073/13/10/2570) by Pasion et al. 
+
 The dataset contains 14 months of data taken at 12 Northern Hemisphere locations having varying climatic conditions; in total, we have 21045 data points. Data recorded was related to the following. 
 - Location 
 - Date 
@@ -29,42 +41,62 @@ The dataset contains 14 months of data taken at 12 Northern Hemisphere locations
 - Visibility
 - Pressure
 - Cloud ceiling
-- Power output.
+- Power output
 
-An interesting aspect of the dataset is that it was taken in the absence of irradiation measurements, which is known to be a valuable predictor of power output: since irradiation can be time-consuming to measure and difficult to forecast with a high degree of certainty, the idea was to investigate the potential for accurate forecasting using more readily available and reliable measurements. 
+An interesting aspect of the dataset is that it was taken in the absence of irradiation measurements, which is known to be a valuable predictor of power output. Since irradiation can be time-consuming to measure and difficult to forecast with a high degree of certainty, the idea was to investigate the potential for accurate forecasting using more readily available and reliable measurements. 
 
 Below is a screen grab showing the locations of the different PV sites across North America. The pop-ups on each location show the average power output and can be set to an hourly or monthly average.
 
 ![Map](./images/map_example.png)
 
-Examination of the dataset revealed the following summary points. See the EDA notebook for details and to explore the data further. 
-
-### Range of data collection and missing values
-At each location, the data ranges from 10:00 to 15:45 at 15-minute intervals from 23 May 2017 to 4 Oct 2018 (499 days in total). Although there are no explicit nulls in the dataset, the data is patchy depending on the particular location, i.e. we don't have consistent data available for every 15 minutes throughout every day for any of the sites. The sparsity of data is visualised below using comparison to a hypothetical ideal situation of available readings for every 15-minute interval from 10:00 to 15:45 for a given site. We can see that even in the best-case scenario we have only 23% of the data, which would likely limit the use of the dataset for time-series forecasting.
+### Data Preprocessing
+At each location, the data ranges from 10:00 to 15:45 at 15-minute intervals from 23 May 2017 to 4 Oct 2018 (499 days in total). Although there are no explicit nulls in the dataset, the data is patchy depending on the particular location, i.e. we don't have consistent data available for every 15 minutes throughout every day for any of the sites. The sparsity of data is visualised below using comparison to a hypothetical ideal situation of available readings for every 15-minute interval from 10:00 to 15:45 for a given site. We can see that even in the best-case scenario we have only 23% of the data, which would likely limit the use of the dataset for time-series forecasting as an extension to the project.
 
 ![Missing values](./images/missing_values.png)
 
-### General variation of power and other features
-The power largely exhibits approximately bimodal distributions with the locations of the central peaks varying from site to site and with peak frequency occurring at high power in some cases (e.g. USAFA) and low power in others (e.g. Malmstrom). 
+During EDA it was noted that the descriptive statistics for some features didn't match those given in the paper. Some investigating showed that the differences were due to approximately constant scaling factors for each feature, indicating some change of units had taken place. The function `fix_units()` calculates these and transforms the features accordingly, leaving a new set of statistics that closely matches those in the paper.
 
-![Power by location](./images/power_by_loc.png)
+## Results and Evaluation
 
-There is also interesting variation in average monthly power output depending on the location: at some sites there is a smooth increase towards the middle of the year while at others there is much more variation between adjacent months. Some kind of cyclical encoding will be necessary here to ensure that, e.g., the values recorded in December are 'close' to those in January for modelling purposes.
+### Evaluation metrics and cross-validation
+To avoid overfitting and assist generalisation, the dataset was split such that 20% of data points were put to one side and the remaining 80% were used for feature engineering. To further ensure good generalisation, a five-fold cross-validation was set up wherein a validation set was also split off to be used for early stopping to optimise training time. The code implementation can be found in `src/train.py`. 
 
-Temperature, pressure and wind speed show broad distributions with varying degrees of skew. Transforms to make the distributions more normal may help at the modelling stage. In contrast, the cloud ceiling and visibility both have a high peak to large values indicating that encoding the data as, e.g., high, medium and low may be advantageous when modelling. 
+To evaluate each model, we used the $R^2$ score (or the coefficient of determination), given by
+$$
+R^2 = 1 - \frac{\sum_i(y_i - \hat{y}_i)^2}{\sum_i(y_i - \bar{y})^2},
+$$
+where $\{y_i\}$ are the target values, $\{\hat{y}_i\}$ are the predicted values for each row $X_i$ of the features matrix $\bm{X}$, and $\bar{y}$ is the mean of the target. If the numerator in the second term, the mean-squared error, is zero, then we have a perfect score of $R^2 = 1$. 
 
-### Correlation matrix
-The following is a correlation matrix of the features, which shows a mixture of positive and negative correlations with power. Note that (unsurprisingly) pressure and altitude are perfectly correlated with one another and don't vary with location. Consequently, the latter was discarded on the basis that the former showed more variation with power output.
+The model trained was an XGBoost regressor. 
 
-<img src="./images/correlation_matrix.png" width="700" height="600" />
+### Baseline and feature engineering
+Using the season and location as categorical features, extracting the month and hour from the datetime, and leaving the rest as floats gave a baseline of 0.6572.
 
-These correlations can also be confirmed visually using a scatterplot as with, for example, the broadly positive correlation between temperature and power at USAFA shown below.
+Feature engineering steps experimented with were as follows. For more detail, see the corresponding notebooks.
+- Categorical features:
+    - Grouping of rare labels
+    - Ordinal encoding via ordering categories using the mean target values
+    - Target encoding
+- Temporal features:
+    - Radial basis functions with tuning of the number of functions and widths. 
+- Discrete features:
+    - PCA to transform latitude and longitude
+    - Same as categorical features
+- Continuous features:
+    - Binarization
+    - Tree discretization
+- Creating new features:
+    - Features were created via domain knowledge and from PCA on the temperature, humidity and windspeed
 
-<img src="./images/power_vs_temp.png" width="700" height="600" /> 
+The final feature pipeline is given below and resulted in a training R2 of 0.663 and a testing size of 0.671, potentially indicating that there is underfitting, which could be mitigated by, for example, increasing the training proportion. Nevertheless, this is a modest increase on the baseline and there are numerous step to be taken to improve this further.  
 
-## Summary 
-The above EDA serves as an initial step ahead of predictive modelling using the dataset. The data is clean and validated by comparison with the source paper. The next step is to obtain a baseline model using the current features followed by iterative feature engineering and selection, and comparison with the results of the paper.
+### Next steps
+- Hyperparameter optimization
+- Repeat process for other models and stack them
+- Deploy solution
 
-#### References
+### References
 1. C. Pasion et al. *Energies* **2020**, 13, 2570; [doi:10.3390/en13102570](https://www.mdpi.com/1996-1073/13/10/2570)
 2. Project Drawdown [*Distributed Solar Voltaics*](https://drawdown.org/solutions/distributed-solar-photovoltaics#:~:text=Distributed%20solar%20photovoltaics%20(PV)%20are,and%20natural%20gas%20power%20plants.)
+3. Super Data Science: ML & AI Podcast, [episode 804](https://open.spotify.com/episode/5rz25YVgRP9vZXYXLCwWmF?si=99e2b2aaba994eaa)
+4. *Speed & Scale* John Doerr (Penguin, 2021)
