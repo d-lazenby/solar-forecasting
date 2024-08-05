@@ -88,7 +88,7 @@ Feature engineering steps experimented with were as follows. For more detail, se
 - Creating new features:
     - Features were created via domain knowledge and from PCA on the temperature, humidity and windspeed
 
-The final feature pipeline is given below and resulted in a training R2 of 0.663 and a testing size of 0.671, potentially indicating that there is underfitting, which could be mitigated by, for example, increasing the training proportion. Nevertheless, this is a modest increase on the baseline and there are numerous step to be taken to improve this further.  
+The final feature pipeline is given below and resulted in a training R2 of 0.663 and a test score of 0.671, potentially indicating that there is underfitting, which could be mitigated by, for example, increasing the training proportion. Nevertheless, this is a modest increase on the baseline and there are numerous step to be taken to improve this further.  
 
 ### Next steps
 - Hyperparameter optimization
