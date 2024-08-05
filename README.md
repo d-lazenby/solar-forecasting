@@ -62,9 +62,9 @@ During EDA it was noted that the descriptive statistics for some features didn't
 To avoid overfitting and assist generalisation, the dataset was split such that 20% of data points were put to one side and the remaining 80% were used for feature engineering. To further ensure good generalisation, a five-fold cross-validation was set up wherein a validation set was also split off to be used for early stopping to optimise training time. The code implementation can be found in `src/train.py`. 
 
 To evaluate each model, we used the $R^2$ score (or the coefficient of determination), given by
-$$
+```math
 R^2 = 1 - \frac{\sum_i(y_i - \hat{y}_i)^2}{\sum_i(y_i - \bar{y})^2},
-$$
+```
 where $\{y_i\}$ are the target values, $\{\hat{y}_i\}$ are the predicted values for each row $X_i$ of the features matrix $\bm{X}$, and $\bar{y}$ is the mean of the target. If the numerator in the second term, the mean-squared error, is zero, then we have a perfect score of $R^2 = 1$. 
 
 The model trained was an XGBoost regressor. 
