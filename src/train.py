@@ -13,9 +13,6 @@ from sklearn.pipeline import Pipeline
 import xgboost
 from xgboost import XGBRegressor
 
-load_dotenv()
-COMET_API_KEY = os.getenv("COMET_API_KEY")
-
 def build_model(params: dict = {'objective': 'reg:squarederror',
                                 'n_estimators': 200,
                                 'learning_rate': 0.1,
@@ -69,6 +66,9 @@ def run_experiment(exp_name: str,
                    target: pd.Series, 
                    pipeline: Pipeline,
                    ) -> dict:
+    
+    load_dotenv()
+    COMET_API_KEY = os.getenv("COMET_API_KEY")
     
     experiment = Experiment(
         api_key=COMET_API_KEY,
