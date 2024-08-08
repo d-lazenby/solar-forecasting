@@ -16,7 +16,7 @@ from xgboost import XGBRegressor
 def build_model(params: dict = {'objective': 'reg:squarederror',
                                 'n_estimators': 200,
                                 'learning_rate': 0.1,
-                                'early_stopping_rounds': 10}) -> xgboost.XGBRegressor:
+                                'early_stopping_rounds': 10}) -> XGBRegressor:
     
     model = XGBRegressor(**params, random_state=0)
         
@@ -57,7 +57,6 @@ def train_model(inputs: pd.core.frame.DataFrame,
               'mean': np.mean(test_scores),
               'std': np.std(test_scores)}
     
-    print(f"CV Average R2: {scores['mean']}")
     return scores
 
 
