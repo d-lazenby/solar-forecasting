@@ -1,7 +1,10 @@
-import src.utils.helper as helper
+# import utils.helper as helper
+from dotenv import load_dotenv
+import os
 
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
@@ -12,6 +15,9 @@ set_config(transform_output = "pandas")
 from feature_engine import encoding as ce
 
 from sklego.preprocessing import RepeatingBasisFunction
+
+load_dotenv()
+DATA_PATH = os.getenv("DATA_PATH")
 
 def make_feature_cloud_cover_score(df: pd.DataFrame) -> pd.Series:
     data = df.copy()
@@ -40,11 +46,71 @@ def make_feature_temp_div_hum(df: pd.DataFrame) -> pd.Series:
     
     data['TempDivHum'] = data['TempDivHum'].replace([np.inf, -np.inf], np.nan).fillna(max_val)
     
-    return data['TempDivHum']  
+    return data['TempDivHum']
+
+def load_base_data(path: str = DATA_PATH):
+    
+    def _fix_dates(data: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
+        if 'Datetime' in data.columns:
+            return data
+        
+        data['Datetime'] = data.apply(
+            lambda x: datetime.strptime(f"{x['Date']} {x['Time']}", "%Y%m%d %H%M"), axis=1)
+        
+        data.drop(['Date', 'Time', 'Month', 'Hour', 'YRMODAHRMI'], axis='columns', inplace=True)
+        
+        data = data[["Datetime"] + [col for col in list(data.columns) if col not in ["Datetime", 'PolyPwr']] + ['PolyPwr']]
+        
+        return data
+
+    def _fix_units(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
+        data = df.copy()
+        features = ['Altitude', 'Wind.Speed', 'Visibility', 'Cloud.Ceiling']
+        converted = data[features].describe().round(3).loc[['min', '25%', '50%', 'mean', '75%', 'max']].reset_index(drop=True).copy()
+        
+        # From paper. Each column in from_paper contains the agregate statistics in the order above
+        from_paper = pd.DataFrame([[0.3, 0.6, 140, 244, 417, 593], 
+                    [0, 9.7, 14.5, 16.6, 22.5, 78.9], 
+                    [0, 16.1, 16.1, 15.6, 16.1, 16.1],
+                    [0, 4.3, 22, 15.7, 22, 22]]).T
+        
+        # Calculate conversion factor and modify feature accordingly
+        for idx, feature in enumerate(features):
+            cf = np.mean(from_paper.iloc[:, idx] / converted.iloc[:, idx])
+            data[feature] = data[feature] * cf
+            
+        return data
+
+    
+    # Set up the data for running experiments
+    raw = pd.read_csv(path)
+    data = _fix_units(raw)
+    data = _fix_dates(data)
+
+    data['month'] = data['Datetime'].dt.month
+    data['hour'] = data['Datetime'].dt.hour
+
+    data = data.drop(columns='Datetime', axis=1)
+
+    # Set up features
+    temporal = ['month', 'hour']
+
+    discrete = [col for col in data.columns if data[col].dtype != 'O' 
+                and col != 'PolyPwr' and data[col].nunique() <= 20 and col not in temporal]
+
+    continuous = [col for col in data.columns if data[col].dtype != 'O' 
+                and col != 'PolyPwr' and col not in discrete + temporal]
+
+    categorical = [col for col in data.columns if data[col].dtype == 'O']
+
+    print(f"Discrete: {discrete}", f"Temporal: {temporal}", f"Continuous: {continuous}", f"Categorical: {categorical}", sep="\n")
+    
+    return data, discrete, temporal, continuous, categorical
+
 
 def preprocess_data() -> pd.DataFrame:
     
-    data, discrete, temporal, continuous, categorical = helper.load_base_data()
+    data, discrete, temporal, continuous, categorical = load_base_data()
     data['CloudCoverScore'] = make_feature_cloud_cover_score(data)
     data['TempDivHum'] = make_feature_temp_div_hum(data)
     data[['Altitude', 'CloudCoverScore']] = data[['Altitude', 'CloudCoverScore']].astype('O')
