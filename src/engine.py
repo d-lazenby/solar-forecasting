@@ -18,7 +18,19 @@ def main(exp_name: str = None) -> None:
     print(X_train.shape, X_test.shape)
     print(X_train.columns)
     
-    pipeline = make_pipeline(build_model())
+    params = {'eta': 0.02532227240864557,
+              'max_depth': 9,
+              'subsample': 0.5701902725252715,
+              'colsample_bytree': 0.5700791751417876,
+              'gamma': 4.468310078336034,
+              'min_child_weight': 9.562538361029706,
+              'lambda': 7.292064154574558,
+              'alpha': 9.313263852489994,
+              'objective': 'reg:squarederror',
+              'n_estimators': 100000,
+              'early_stopping_rounds': 100}
+
+    pipeline = make_pipeline(build_model(params=params))
     print(pipeline.named_steps)
     
     if not exp_name:
@@ -33,5 +45,4 @@ def main(exp_name: str = None) -> None:
     print(f"Test score: {test_score}")
         
 if __name__ == '__main__':
-    # main(exp_name='test-api-key-insert')
     main()
