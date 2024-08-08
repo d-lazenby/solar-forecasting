@@ -88,10 +88,23 @@ Feature engineering steps experimented with were as follows. For more detail, se
 - Creating new features:
     - Features were created via domain knowledge and from PCA on the temperature, humidity and windspeed
 
-The final feature pipeline is given below and resulted in a training R2 of 0.663 and a test score of 0.671, potentially indicating that there is underfitting, which could be mitigated by, for example, increasing the training proportion. Nevertheless, this is a modest increase on the baseline and there are numerous step to be taken to improve this further.  
+The final feature pipeline is given below and resulted in a training R2 of 0.663 and a test score of 0.671, potentially indicating that there is underfitting, which could be mitigated by, for example, increasing the training proportion. Nevertheless, this is a modest increase on the baseline and there are numerous step to be taken to improve this further. 
+
+### Hyperparameter tuning
+I next used Optuna to tune the hyperparameters of the model (code implementation in `tuning.ipynb`). The final hyperparameter values are given in the table below
+and respectively resulted in increased training and test scores of 0.668 and 0.676
+
+| Hyperparameter     | Value |
+|--------------------|-------|
+| `eta`              | 0.025 |
+| `max_depth`        | 9     |
+| `subsample`        | 0.57  |
+| `colsample_bytree` | 0.57  |
+| `min_child_weight` | 9.56  |
+| `lambda`           | 7.29  |
+| `alpha`            | 9.31  |
 
 ### Next steps
-- Hyperparameter optimization
 - Repeat process for other models and stack them
 - Deploy solution
 
