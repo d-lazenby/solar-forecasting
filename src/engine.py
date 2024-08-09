@@ -1,3 +1,5 @@
+import os
+
 from preprocessing import preprocess_data, make_pipeline
 from train import build_model, train_model, run_experiment
 
@@ -6,9 +8,12 @@ from sklearn.metrics import r2_score
 from sklearn import set_config
 set_config(transform_output = "pandas")
 
-TRAIN_SIZE = 0.8
+import pickle
 
-def main(exp_name: str = None) -> None:
+TRAIN_SIZE = 0.8
+MODEL_PATH = "models/final_model.bin"
+
+def main(exp_name: str = None, save_model: bool = False) -> None:
     
     X = preprocess_data()
     y = X.pop('PolyPwr')
@@ -38,11 +43,37 @@ def main(exp_name: str = None) -> None:
     else:
         scores = run_experiment(inputs=X_train, target=y_train, pipeline=pipeline, exp_name=exp_name)
     
-    print(f"Mean R2: {scores['mean']}", f"Std: {scores['std']}")
+    print(f"Mean R2: {scores['mean']} ± {scores['std']}\n")
     
+    # Train final model on full training set
+    print("Conducting final training run...")
+    
+    pipeline = make_pipeline(build_model(params=params))
+    
+    X_train_final, X_val, y_train_final, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=0)
+        
+    # Transform eval_set
+    val_pipeline = pipeline[:-1]
+    val_pipeline.fit(X_train_final, y_train_final)
+    X_val = val_pipeline.transform(X_val)
+    
+    pipeline.fit(X_train_final, y_train_final, xgb__eval_set=[(X_val, y_val)], xgb__verbose=False)
+    
+    # Predict on test set
     y_pred = pipeline.predict(X_test)
     test_score = r2_score(y_test, y_pred)
-    print(f"Test score: {test_score}")
+    
+    print(f"Final Test R2: {test_score}")
+
+    if save_model:
+        # saving model
+        if not os.path.exists('models'):
+            os.makedirs('./models')
         
+        with open(MODEL_PATH, 'wb') as f_out:
+            pickle.dump(pipeline, f_out)
+            
+        print(f"Model saved at {MODEL_PATH}")
+                
 if __name__ == '__main__':
-    main()
+    main(save_model=True)
