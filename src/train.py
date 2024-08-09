@@ -32,8 +32,10 @@ def train_model(inputs: pd.core.frame.DataFrame,
     y = target.copy()
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     
+    print(f"Training on {n_splits} folds", "*"*40, sep="\n")
+    
     test_scores = []
-    for train_idx, test_idx in kf.split(X, y):
+    for fold, (train_idx, test_idx) in enumerate(kf.split(X, y)):
         X_train_fold, X_test_fold = X.iloc[train_idx], X.iloc[test_idx]
         y_train_fold, y_test_fold = y.iloc[train_idx], y.iloc[test_idx]
 
@@ -52,6 +54,10 @@ def train_model(inputs: pd.core.frame.DataFrame,
         y_pred = pipeline.predict(X_test_fold)
         test_score = r2_score(y_test_fold, y_pred)
         test_scores.append(test_score)
+        
+        print(f"R2 score on fold {fold+1}: {test_score}")
+    
+    print("*"*40)
         
     scores = {'r2': test_scores,
               'mean': np.mean(test_scores),
