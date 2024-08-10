@@ -123,7 +123,7 @@ def make_pipeline(model):
     # RepeatingBasisFunction and Binarizer rename the columns so we have to access them as below
     visibility_column_index = 19
     cloud_ceiling_column_index = 21
-    temp_hum_ratio_column_index = 'remainder__x25'
+    temp_hum_ratio_column_index = 25
 
     pipeline = Pipeline([
         
