@@ -50,7 +50,7 @@ def main(exp_name: str = None, save_model: bool = False) -> None:
     
     pipeline = make_pipeline(build_model(params=params))
     
-    X_train_final, X_val, y_train_final, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=0)
+    X_train_final, X_val, y_train_final, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=0)
         
     # Transform eval_set
     val_pipeline = pipeline[:-1]
