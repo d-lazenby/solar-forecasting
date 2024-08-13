@@ -9,22 +9,27 @@ Solar energy is a key renewable resource – about 6% of the world's electricity
 
 This project uses a PV dataset with aggregated readings from 12 sites across the US to predict the power output. The main steps carried out were as follows.
 
-- Exploratory data analysis (see `eda.ipynb`)
-- Notes on experiments with modification of the feature engineering pipeline to improve performance (see `notebooks` directory)
+- Initial exploratory data analysis (see `eda.ipynb`)
+- Notes on experiments with further investigation and subsequent modifications to the feature engineering pipeline to improve performance (see `notebooks` directory)
 - Scripts (see `src` directory):
     - `eda.py`: code for plots used in EDA, the notebooks and analysis of results
     - `preprocessing.py`: code for loading and preprocessing the data and building the feature engineering pipeline
     - `train.py`: code for setting up the cross-validation loop and logging experiment tracking to CometML
     - `engine.py`: main script for running experiments. 
+- Deployment:
+    - `inference.py`: a script containing a Flask app for inference
+    - `Dockerfile`: instructions for building a container for deployment
+    - `inference_test.py`: code for testing deployment. 
 
 #### Software and Packages
 
 The project was run in a VS Code virtual environment running Python 3.12.4. The main packages used were as follows.
 
-- General Purpose: `os`, `dotenv`, `typing`
+- General Purpose: `os`, `dotenv`, `typing`, `pipenv`
 - Data Manipulation: `numpy`, `pandas`, `datetime`
 - Data Visualization: `matplotlib`, `seaborn`, `folium`
 - Machine Learning: `sklearn`, `feature-engine`, `sklego`, `comet-ml`
+- Deployment: `requests`, `flask`, `gunicorn`, `docker`
 
 ## Data
 
@@ -90,9 +95,11 @@ Feature engineering steps experimented with were as follows. For more detail, se
 
 The final feature pipeline is given below and resulted in a training R2 of 0.663 and a test score of 0.671, potentially indicating that there is underfitting, which could be mitigated by, for example, increasing the training proportion. Nevertheless, this is a modest increase on the baseline and there are numerous step to be taken to improve this further. 
 
+<!-- ![Map](./images/pipeline.png) -->
+<img src="./images/pipeline.png" width="300"/>
+
 ### Hyperparameter tuning
-I next used Optuna to tune the hyperparameters of the model (code implementation in `tuning.ipynb`). The final hyperparameter values are given in the table below
-and respectively resulted in increased training and test scores of 0.668 and 0.676
+Optuna was used to tune the hyperparameters of the model (code implementation in `tuning.ipynb`). The final hyperparameter values are given in the table below and increased the final test score to ~0.684
 
 | Hyperparameter     | Value |
 |--------------------|-------|
@@ -104,9 +111,9 @@ and respectively resulted in increased training and test scores of 0.668 and 0.6
 | `lambda`           | 7.29  |
 | `alpha`            | 9.31  |
 
-### Next steps
-- Repeat process for other models and stack them
-- Deploy solution
+## Deployment
+The final model and dependencies for inference were 
+
 
 ### References
 1. C. Pasion et al. *Energies* **2020**, 13, 2570; [doi:10.3390/en13102570](https://www.mdpi.com/1996-1073/13/10/2570)
