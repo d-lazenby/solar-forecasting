@@ -111,9 +111,6 @@ Optuna was used to tune the hyperparameters of the model (code implementation in
 | `lambda`           | 7.29  |
 | `alpha`            | 9.31  |
 
-## Deployment
-The final model and dependencies for inference were 
-
 
 ### References
 1. C. Pasion et al. *Energies* **2020**, 13, 2570; [doi:10.3390/en13102570](https://www.mdpi.com/1996-1073/13/10/2570)
