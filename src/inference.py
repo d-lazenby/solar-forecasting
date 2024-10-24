@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 
 import pickle
 import pandas as pd
@@ -23,7 +23,7 @@ def make_inference(data: dict) -> float:
     y_pred = pipeline.predict(X)
     
     return y_pred[0]
-    
+
 
 input_file = "./models/final_model.bin"
 
@@ -31,6 +31,11 @@ app = Flask('inference')
 
 with open(input_file, 'rb') as f_input:
     pipeline = pickle.load(f_input)
+
+
+@app.route("/")
+def home():
+    return render_template("index.html")
 
 @app.route('/inference', methods=['POST'])
 def predict():
@@ -42,7 +47,7 @@ def predict():
         "power": float(y_pred)
     }
     
-    return jsonify(result)
+    return render_template('index.html', prediction=jsonify(result))
 
 
 if __name__ == "__main__":
